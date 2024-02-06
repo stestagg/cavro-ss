@@ -1,3 +1,15 @@
+# Necessary imports for our custom logical types
+import gzip
+
+# Custom exception for compression errors
+class CompressionError(Exception):
+    """Raised when compression of a value fails."""
+    pass
+
+# Custom exception for decompression errors
+class DecompressionError(Exception):
+    """Raised when decompression of a value fails."""
+    pass
 cdef class ValueAdapter:
 
     """
@@ -396,3 +408,29 @@ cdef class TimestampMicros(LogicalType):
     cdef decode_value(self, value):
         return EPOCH_DT + datetime.timedelta(microseconds=value)
 
+
+cdef class GzipStringType(LogicalType):
+    """Logical type to encode and decode gzipped strings."""
+
+    logical_name = 'gzip-str'
+    underlying_types = (BytesType,)
+
+    def __init__(self):
+        # Constructor for GzipStringType does not need additional parameters
+        pass
+
+    cdef encode_value(self, value):
+        if not isinstance(value, str):
+            raise ValueError(f"Expected str for gzip-str logical type, got: {type(value)}")
+        try:
+            # Compress the string value to gzipped bytes
+            return gzip.compress(value.encode('utf-8'))
+        except Exception as e:
+            raise CompressionError(f"Error compressing value: {value}") from e
+
+    cdef decode_value(self, value):
+        try:
+            # Decompress the gzipped bytes back to a string
+            return gzip.decompress(value).decode('utf-8')
+        except Exception as e:
+            raise DecompressionError(f"Error decompressing value: {value}") from e

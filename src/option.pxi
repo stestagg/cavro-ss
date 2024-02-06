@@ -21,10 +21,11 @@ LOGICAL_TYPES = (
     UUIDStringType,
     UUIDFixedType,
     Date,
-    TimeMillis, 
+    TimeMillis,
     TimeMicros,
     TimestampMillis,
     TimestampMicros,
+    GzipStringType,
 )
 
 class UnionDecodeOption(enum.Enum):
